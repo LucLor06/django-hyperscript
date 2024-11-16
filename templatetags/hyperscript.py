@@ -1,22 +1,22 @@
 from django import template
-from django.utils.safestring import mark_safe
+from django.utils.safestring import mark_safe, SafeString
 import json
 
 register = template.Library()
 
-def _snake_case_to_camel_case(data: str):
+def _snake_case_to_camel_case(data: str) -> str:
     words = data.split('_')
     return f'{words[0]}{''.join([word.capitalize() for word in words[1:]])}'
 
-def _dict_to_camel_case(data: dict):
+def _dict_to_camel_case(data: dict) -> dict:
     if isinstance(data, dict):
         return {_snake_case_to_camel_case(key): _dict_to_camel_case(value) for key, value in data.items()}
     else:
         return data
 
-def _construct_hyperscript(data, name=None, accepted_kwargs: dict={}, **kwargs):
+def _construct_hyperscript(data, name=None, accepted_kwargs=None, **kwargs) -> SafeString:
     DEFAULT_KWARGS = {'show': bool, 'translate': bool, 'scope': str, 'wrap': bool}
-    accepted_kwargs = {**DEFAULT_KWARGS, **accepted_kwargs}
+    accepted_kwargs = {**DEFAULT_KWARGS, **(accepted_kwargs or {})}
     for key, value in kwargs.items():
         if key not in accepted_kwargs:
             raise TypeError(f'Unexpected keyword argument: {key}. Accepted arguments: {', '.join([f'{kwarg}: {type.__name__}' for kwarg, type in accepted_kwargs.items()])}.')
