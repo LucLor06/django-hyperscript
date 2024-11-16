@@ -14,7 +14,10 @@ def _dict_to_camel_case(data: dict):
     else:
         return data
 
-def _construct_hyperscript(data, accepted_kwargs: dict, name=None, **kwargs):
+def _construct_hyperscript(data, name=None, accepted_kwargs: dict={}, **kwargs):
+    DEFAULT_KWARGS = {'show': bool, 'translate': bool}
+    accepted_kwargs = {**DEFAULT_KWARGS, **accepted_kwargs}
+
     for key, value in kwargs.items():
         if key not in accepted_kwargs:
             raise TypeError(f'Unexpected keyword argument: {key}. Accepted arguments: {', '.join([f'{kwarg}: {type.__name__}' for kwarg, type in accepted_kwargs.items()])}.')
@@ -42,11 +45,10 @@ def _construct_hyperscript(data, accepted_kwargs: dict, name=None, **kwargs):
 
 @register.simple_tag()
 def hs_dump(data, name: str, **kwargs):
-    ACCEPTED_KWARGS = {'show': bool, 'translate': bool}
-    return _construct_hyperscript(data, ACCEPTED_KWARGS, name, **kwargs)
+    return _construct_hyperscript(data, name, **kwargs)
 
 @register.simple_tag()
 def hs_expand(data, **kwargs):
     kwargs['expand'] = True
-    ACCEPTED_KWARGS = {'show': bool, 'translate': bool, 'expand': bool}
-    return _construct_hyperscript(data, ACCEPTED_KWARGS, **kwargs)
+    accepted_kwargs = {'expand': bool}
+    return _construct_hyperscript(data, accepted_kwargs=accepted_kwargs, **kwargs)
