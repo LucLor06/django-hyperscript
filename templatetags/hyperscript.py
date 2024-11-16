@@ -15,7 +15,7 @@ def _dict_to_camel_case(data: dict):
         return data
 
 def _construct_hyperscript(data, name=None, accepted_kwargs: dict={}, **kwargs):
-    DEFAULT_KWARGS = {'show': bool, 'translate': bool}
+    DEFAULT_KWARGS = {'show': bool, 'translate': bool, 'scope': str}
     accepted_kwargs = {**DEFAULT_KWARGS, **accepted_kwargs}
 
     for key, value in kwargs.items():
@@ -26,15 +26,17 @@ def _construct_hyperscript(data, name=None, accepted_kwargs: dict={}, **kwargs):
         if not isinstance(value, expected_type):
             raise TypeError(f'Invalid type for keyword argument {key}: expected {expected_type}, got {type(value).__name__}')
     
+    scope = kwargs.get('scope', 'global')
+
     if kwargs.get('translate', True):
         data = _dict_to_camel_case(data)
 
     if kwargs.get('expand', False):
         if not isinstance(data, dict):
             raise TypeError(f'Invalid type for mapping: expected dict, got {type(data).__name__}')
-        assignment = ' '.join([f'set global {key} to {json.dumps(value)}' for key, value in data.items()])
+        assignment = ' '.join([f'set {scope} {key} to {json.dumps(value)}' for key, value in data.items()])
     else:
-        assignment = f'set global {name} to {json.dumps(data)}'
+        assignment = f'set {scope} {name} to {json.dumps(data)}'
 
     hyperscript = f'init {assignment}'
     if not kwargs.get('show', False):
