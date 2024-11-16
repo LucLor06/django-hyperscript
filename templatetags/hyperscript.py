@@ -15,18 +15,17 @@ def _dict_to_camel_case(data: dict):
         return data
 
 def _construct_hyperscript(data, name=None, accepted_kwargs: dict={}, **kwargs):
-    DEFAULT_KWARGS = {'show': bool, 'translate': bool, 'scope': str}
+    DEFAULT_KWARGS = {'show': bool, 'translate': bool, 'scope': str, 'wrap': bool}
     accepted_kwargs = {**DEFAULT_KWARGS, **accepted_kwargs}
-
     for key, value in kwargs.items():
         if key not in accepted_kwargs:
             raise TypeError(f'Unexpected keyword argument: {key}. Accepted arguments: {', '.join([f'{kwarg}: {type.__name__}' for kwarg, type in accepted_kwargs.items()])}.')
-        
         expected_type = accepted_kwargs[key]
         if not isinstance(value, expected_type):
             raise TypeError(f'Invalid type for keyword argument {key}: expected {expected_type}, got {type(value).__name__}')
     
     scope = kwargs.get('scope', 'global')
+    wrap = kwargs.get('wrap', True)
 
     if kwargs.get('translate', True):
         data = _dict_to_camel_case(data)
@@ -39,10 +38,18 @@ def _construct_hyperscript(data, name=None, accepted_kwargs: dict={}, **kwargs):
         assignment = f'set {scope} {name} to {json.dumps(data)}'
 
     hyperscript = f'init {assignment}'
+
     if not kwargs.get('show', False):
-        hyperscript = f'{hyperscript} then remove me'
+        if not wrap:
+            hyperscript = f'{hyperscript} then remove @_ from me'
+        else:
+            hyperscript = f'{hyperscript} then remove me'
+
     hyperscript = f'{hyperscript} end'
-    hyperscript = f"<div _='{hyperscript}'></div>"
+
+    if wrap:
+        hyperscript = f"<div _='{hyperscript}'></div>"
+
     return mark_safe(hyperscript)
 
 @register.simple_tag()
