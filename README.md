@@ -99,3 +99,8 @@ In this example:
 - The keys within the dumped data remain in snake case since **`translate`** is `False`
 - The variable is scoped to the element the Hyperscript belongs to since **`scope`** is set to `'element'`
 - The output is just the raw Hyperscript text since **`wrap`** is set to `False`
+
+---
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
