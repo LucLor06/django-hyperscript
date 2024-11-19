@@ -1,4 +1,4 @@
-![Icon](django-hyperscript.png)
+<img src="https://github.com/LucLor06/django-hyperscript/blob/main/django-hyperscript.png?raw=true" width=200>
 
 # Django Hyperscript
 
