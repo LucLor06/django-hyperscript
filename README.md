@@ -1,3 +1,5 @@
+![Icon](django-hyperscript.png)
+
 # Django Hyperscript
 
 This package is intended to simplify the process of dumping data from Django into Hyperscript by providing two template tags with options for customizing the output.
