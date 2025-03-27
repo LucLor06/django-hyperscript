@@ -69,7 +69,7 @@ Both `hs_dump` and `hs_expand` have a set of additional keyword arguments to con
 ### `show`
 *Type*: `bool` | *Default*: `False`
 
-Removes Hyperscript from the DOM after initializing if `False`.
+Keeps the element the Hyperscript is on in the DOM after initializing if `True`.
 
 ### `translate`
 *Type*: `bool` | *Default*: `True`
@@ -86,7 +86,7 @@ Determines the scope of the Hyperscript variable (global, element, or local).
 
 Wraps the Hyperscript in a `<div>` if `True`, otherwise returns the raw Hyperscript text.
 
-**Note:** If both **`wrap`** and **`show`** are `False`, the element will *not* be removed and the Hyperscript attribute and value will be removed from the element. 
+**Note:** If both **`wrap`** and **`show`** are `False`, the element will *not* be removed and the only Hyperscript attribute and value will be removed from the element. 
 
 ## Final example
 ```django
