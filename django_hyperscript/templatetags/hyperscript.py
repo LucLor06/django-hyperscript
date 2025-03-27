@@ -48,8 +48,14 @@ def _construct_hyperscript(
         TypeError: If an unexpected or invalid keyword argument/type is provided.
         ValueError: If required arguments (like `name`) are missing or invalid.
     """
-    DEFAULT_KWARGS = {"show": bool,
-                      "translate": bool, "scope": str, "wrap": bool}
+    DEFAULT_KWARGS = {
+        "show": bool,
+        "translate": bool,
+        "scope": str,
+        "wrap": bool,
+        "debug": bool
+    }
+
     accepted_kwargs = {**DEFAULT_KWARGS, **(accepted_kwargs or {})}
     for key, value in kwargs.items():
         if key not in accepted_kwargs:
@@ -62,6 +68,7 @@ def _construct_hyperscript(
                 f"Invalid type for keyword argument {key}: expected {expected_type}, got {type(value).__name__}"
             )
 
+    debug = kwargs.get("debug", False)
     scope = kwargs.get("scope", "global")
     wrap = kwargs.get("wrap", True)
 
@@ -73,21 +80,31 @@ def _construct_hyperscript(
             raise TypeError(
                 f"Invalid type for mapping: expected dict, got {type(data).__name__}"
             )
-        assignment = " ".join(
-            [f"set {scope} {key} to {json.dumps(value)}" for key, value in data.items()]
-        )
+        
+        assignments = []
+        for key, value in data.items():
+            assignment = f"set {scope} {key} to {json.dumps(value)}"
+            if debug:
+                logging_statement = f"call console.log(`{key}:\\n`, {key})"
+                assignment = f"{assignment} then {logging_statement}"
+            assignments.append(assignment)
+        assignment = "\n    ".join(assignments)
+        
     else:
         assignment = f"set {scope} {name} to {json.dumps(data)}"
+        if debug:
+            logging_statement = f"call console.log(`{name}:\\n`, {name})"
+            assignment = f"{assignment} then {logging_statement}"
 
-    hyperscript = f"init {assignment}"
+    hyperscript = f"init\n    {assignment}"
 
     if not kwargs.get("show", False):
         if not wrap:
             hyperscript = f"{hyperscript} then remove @_ from me"
         else:
-            hyperscript = f"{hyperscript} then remove me"
+            hyperscript = f"{hyperscript} then remove me"  
 
-    hyperscript = f"{hyperscript} end"
+    hyperscript = f"{hyperscript}\n   end"
 
     if wrap:
         hyperscript = f"<div _='{hyperscript}'></div>"

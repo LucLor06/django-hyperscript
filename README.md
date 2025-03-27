@@ -86,7 +86,12 @@ Determines the scope of the Hyperscript variable (global, element, or local).
 
 Wraps the Hyperscript in a `<div>` if `True`, otherwise returns the raw Hyperscript text.
 
-**Note:** If both **`wrap`** and **`show`** are `False`, the element will *not* be removed and the only Hyperscript attribute and value will be removed from the element. 
+**Note:** If both **`wrap`** and **`show`** are `False`, the element will *not* be removed and the only Hyperscript attribute and value will be removed from the element.
+
+### `debug`
+*Type*: `bool` | *Default*: `True`
+
+Logs the set variable name(s) and output.
 
 ## Final example
 ```django
