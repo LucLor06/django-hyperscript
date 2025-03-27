@@ -54,8 +54,7 @@ def _construct_hyperscript(
     for key, value in kwargs.items():
         if key not in accepted_kwargs:
             raise TypeError(
-                f"Unexpected keyword argument: {key}. Accepted arguments: {', '.join([f'{kwarg}: {type.__name__}' for kwarg, type in accepted_kwargs.items(
-                )])}."
+                f"Unexpected keyword argument: {key}. Accepted arguments: {', '.join([f'{kwarg}: {type.__name__}' for kwarg, type in accepted_kwargs.items()])}."
             )
         expected_type = accepted_kwargs[key]
         if not isinstance(value, expected_type):
@@ -75,8 +74,7 @@ def _construct_hyperscript(
                 f"Invalid type for mapping: expected dict, got {type(data).__name__}"
             )
         assignment = " ".join(
-            [f"set {scope} {key} to {json.dumps(value)}" for key, value in data.items(
-            )]
+            [f"set {scope} {key} to {json.dumps(value)}" for key, value in data.items()]
         )
     else:
         assignment = f"set {scope} {name} to {json.dumps(data)}"
