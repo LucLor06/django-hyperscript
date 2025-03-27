@@ -20,9 +20,7 @@ def _dict_to_camel_case(data: dict) -> dict:
         return data
 
 
-def _construct_hyperscript(
-    data, name=None, accepted_kwargs=None, **kwargs
-) -> SafeString:
+def _construct_hyperscript(data, name=None, accepted_kwargs=None, **kwargs) -> SafeString:
     """
     Constructs Hyperscript code to dump Django data.
 
@@ -53,7 +51,8 @@ def _construct_hyperscript(
         "translate": bool,
         "scope": str,
         "wrap": bool,
-        "debug": bool
+        "debug": bool,
+        "event": str,
     }
 
     accepted_kwargs = {**DEFAULT_KWARGS, **(accepted_kwargs or {})}
@@ -68,6 +67,8 @@ def _construct_hyperscript(
                 f"Invalid type for keyword argument {key}: expected {expected_type}, got {type(value).__name__}"
             )
 
+    event = kwargs.get("event", None)
+    event = f"on {event}" if event not in ["init", None] else "init"
     debug = kwargs.get("debug", False)
     scope = kwargs.get("scope", "global")
     wrap = kwargs.get("wrap", True)
@@ -96,7 +97,7 @@ def _construct_hyperscript(
             logging_statement = f"call console.log(`{name}:\\n`, {name})"
             assignment = f"{assignment} then {logging_statement}"
 
-    hyperscript = f"init\n    {assignment}"
+    hyperscript = f"{event}\n    {assignment}"
 
     if not kwargs.get("show", False):
         if not wrap:

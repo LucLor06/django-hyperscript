@@ -81,6 +81,13 @@ Keeps the element the Hyperscript is on in the DOM after initializing if `True`.
 
 Determines the scope of the Hyperscript variable (global, element, or local).
 
+### `event`
+*Type*: `str` | *Default*: `init`
+
+If you need to set values after initialization, you can specify an event that triggers assignment. The Hyperscript "on" keyword should not need be provided.
+
+**Note:** If **`show`** is `False` (which it is by default), the element will not be removed until after the event is fired and values are set.
+
 ### `wrap`
 *Type*: `bool` | *Default*: `True`
 
