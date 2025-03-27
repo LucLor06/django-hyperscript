@@ -69,7 +69,7 @@ Both `hs_dump` and `hs_expand` have a set of additional keyword arguments to con
 ### `show`
 *Type*: `bool` | *Default*: `False`
 
-Removes Hyperscript from the DOM after initializing if `True`.
+Removes Hyperscript from the DOM after initializing if `False`.
 
 ### `translate`
 *Type*: `bool` | *Default*: `True`
