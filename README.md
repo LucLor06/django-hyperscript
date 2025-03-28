@@ -30,6 +30,8 @@ INSTALLED_APPS = [
 ---
 ## Usage
 
+By default, django-hyperscript wraps its output in a `<div>` with a `class` of `hs-wrapper`.
+
 ### `hs_dump`
 
 Dumps data into a single Hyperscript variable.
@@ -38,7 +40,7 @@ Dumps data into a single Hyperscript variable.
 ```
 assuming `data` is `{"foo": "bar"}`, the tag would output
 ```html
-<div _="
+<div class="hs-wrapper" _="
 init
     set global myData to {'foo': 'bar'} 
     then remove me 
@@ -53,7 +55,7 @@ Expands a dictionary into Hyperscript variables.
 
 assuming `data` is `{"foo": "bar", "baz": "qux"}`, the tag would output
 ```html
-<div _="
+<div class="hs-wrapper" _="
 init 
     set global foo to bar 
     set global baz to qux 
@@ -84,21 +86,26 @@ Determines the scope of the Hyperscript variable (global, element, or local).
 ### `event`
 *Type*: `str` | *Default*: `init`
 
-If you need to set values after initialization, you can specify an event that triggers assignment. The Hyperscript "on" keyword should not need be provided.
+Specifies the event that triggers assignment. The Hyperscript "on" keyword should not need be provided.
 
 **Note:** If **`show`** is `False` (which it is by default), the element will not be removed until after the event is fired and values are set.
 
 ### `wrap`
 *Type*: `bool` | *Default*: `True`
 
-Wraps the Hyperscript in a `<div>` if `True`, otherwise returns the raw Hyperscript text.
+Wraps the Hyperscript in a `<div>` with its `display` set to `none` if `True`, otherwise returns the raw Hyperscript text.
 
 **Note:** If both **`wrap`** and **`show`** are `False`, the element will *not* be removed and the only Hyperscript attribute and value will be removed from the element.
+
+### `class`
+*Type*: `str` | *Default*: `hs-wrapper`
+
+Sets the HTML class/classes on the wrapper `<div>`.
 
 ### `debug`
 *Type*: `bool` | *Default*: `True`
 
-Logs the set variable name(s) and output.
+Logs the set variable name(s) and value(s).
 
 ## Final example
 ```django

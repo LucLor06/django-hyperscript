@@ -1,4 +1,5 @@
 from django import template
+from django.utils.html import escape
 from django.utils.safestring import mark_safe, SafeString
 import json
 
@@ -53,6 +54,7 @@ def _construct_hyperscript(data, name=None, accepted_kwargs=None, **kwargs) -> S
         "wrap": bool,
         "debug": bool,
         "event": str,
+        "class": str,
     }
 
     accepted_kwargs = {**DEFAULT_KWARGS, **(accepted_kwargs or {})}
@@ -72,6 +74,7 @@ def _construct_hyperscript(data, name=None, accepted_kwargs=None, **kwargs) -> S
     debug = kwargs.get("debug", False)
     scope = kwargs.get("scope", "global")
     wrap = kwargs.get("wrap", True)
+    classes = escape(kwargs.get("class", "hs-wrapper"))
 
     if kwargs.get("translate", True):
         data = _dict_to_camel_case(data)
@@ -108,7 +111,7 @@ def _construct_hyperscript(data, name=None, accepted_kwargs=None, **kwargs) -> S
     hyperscript = f"{hyperscript}\n   end"
 
     if wrap:
-        hyperscript = f"<div _='{hyperscript}'></div>"
+        hyperscript = f"<div class='{classes}' _='{hyperscript}'></div>"
 
     return mark_safe(hyperscript)
 
