@@ -1,6 +1,7 @@
 from django import template
 from django.utils.html import escape
 from django.utils.safestring import mark_safe, SafeString
+from ..serializer import hs_serialize
 import json
 
 register = template.Library()
@@ -11,16 +12,25 @@ def _snake_case_to_camel_case(data: str) -> str:
     return f"{words[0]}{''.join([word.capitalize() for word in words[1:]])}"
 
 
-def _dict_to_camel_case(data: dict) -> dict:
+def _camelize(data: dict) -> dict:
     if isinstance(data, dict):
         return {
-            _snake_case_to_camel_case(key): _dict_to_camel_case(value)
+            _snake_case_to_camel_case(key): _camelize(value)
             for key, value in data.items()
         }
+    elif isinstance(data, list):
+        return [_camelize(item) for item in data]
     else:
         return data
-
-
+    
+def _prepare_for_hyperscript(value, translate):
+    print(value)
+    value = hs_serialize(value)
+    if translate:
+        value = _camelize(value)
+    value = json.dumps(value)
+    return value
+    
 def _construct_hyperscript(data, name=None, accepted_kwargs=None, **kwargs) -> SafeString:
     """
     Constructs Hyperscript code to dump Django data.
@@ -75,9 +85,7 @@ def _construct_hyperscript(data, name=None, accepted_kwargs=None, **kwargs) -> S
     scope = kwargs.get("scope", "global")
     wrap = kwargs.get("wrap", True)
     classes = escape(kwargs.get("class", "hs-wrapper"))
-
-    if kwargs.get("translate", True):
-        data = _dict_to_camel_case(data)
+    translate = kwargs.get("translate", True)
 
     if kwargs.get("expand", False):
         if not isinstance(data, dict):
@@ -87,7 +95,8 @@ def _construct_hyperscript(data, name=None, accepted_kwargs=None, **kwargs) -> S
         
         assignments = []
         for key, value in data.items():
-            assignment = f"set {scope} {key} to {json.dumps(value)}"
+            value = _prepare_for_hyperscript(value, translate)
+            assignment = f"set {scope} {key} to {value}"
             if debug:
                 logging_statement = f"call console.log(`{key}:\\n`, {key})"
                 assignment = f"{assignment} then {logging_statement}"
@@ -95,7 +104,8 @@ def _construct_hyperscript(data, name=None, accepted_kwargs=None, **kwargs) -> S
         assignment = "\n    ".join(assignments)
         
     else:
-        assignment = f"set {scope} {name} to {json.dumps(data)}"
+        data = _prepare_for_hyperscript(data, translate)
+        assignment = f"set {scope} {name} to {data}"
         if debug:
             logging_statement = f"call console.log(`{name}:\\n`, {name})"
             assignment = f"{assignment} then {logging_statement}"

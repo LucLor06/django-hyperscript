@@ -64,6 +64,36 @@ end"></div>
 ```
 
 ---
+## Model Serialization
+
+Django-Hyperscript includes a built-in lightweight serializer to help convert Django `Model` instances and `QuerySet`s into plain data structures for use in templates. This includes instances or querysets that are nested within dictionaries or lists, which will be serialized recursively.
+
+By default, the serializer returns all editable fields defined on the model. However, you can customize this by adding an `hs_fields` attribute to your model, which is a list of field names you want exposed.
+
+```python
+class Book(models.Model):
+    name = models.CharField(max_length=32)
+    year_published = models.SmallIntegerField()
+
+    hs_fields = ['name', 'year_published']
+```
+
+would return an instance as
+
+```json
+{
+   "name": "foo",
+   "year_published": 1986
+}
+```
+
+This serializer is intentionally minimal and does not support advanced features like relation traversal, nested serialization, field aliasing, or custom computed fields. If you need those capabilities, consider serializing your data ahead of time using Django REST Framework, or a custom serializer.
+
+If needed, this serializer can be accessed via
+```python
+from django_hyperscript.serializer import hs_serialize
+```
+---
 ## Configuration
 
 Both `hs_dump` and `hs_expand` have a set of additional keyword arguments to configure their behavior.
