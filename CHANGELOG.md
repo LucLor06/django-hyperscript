@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1] - 2025-04-01
+
+### Changed
+- `wrap` kwarg in `hs_dump` defaults to `True`
+
+---
+
 ## [1.5.0] - 2025-04-01
 
 ### Breaking

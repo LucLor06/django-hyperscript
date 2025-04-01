@@ -12,7 +12,7 @@ def hs_dump(
     data: Any,
     name: str = "data",
     *,
-    wrap: bool = False,
+    wrap: bool = True,
     classes: str = "hs-wrapper",
     **kwargs
 ) -> SafeString:
