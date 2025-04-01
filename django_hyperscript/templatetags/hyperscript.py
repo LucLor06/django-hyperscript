@@ -1,177 +1,53 @@
 from django import template
-from django.utils.html import escape
+from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe, SafeString
 from ..serializer import hs_serialize
-import json
+from hyperscript_dump import build_hyperscript
+from typing import Any
 
 register = template.Library()
 
-
-def _snake_case_to_camel_case(data: str) -> str:
-    words = data.split("_")
-    return f"{words[0]}{''.join([word.capitalize() for word in words[1:]])}"
-
-
-def _camelize(data: dict) -> dict:
-    if isinstance(data, dict):
-        return {
-            _snake_case_to_camel_case(key): _camelize(value)
-            for key, value in data.items()
-        }
-    elif isinstance(data, list):
-        return [_camelize(item) for item in data]
-    else:
-        return data
-    
-def _prepare_for_hyperscript(value, translate):
-    print(value)
-    value = hs_serialize(value)
-    if translate:
-        value = _camelize(value)
-    value = json.dumps(value)
-    return value
-    
-def _construct_hyperscript(data, name=None, accepted_kwargs=None, **kwargs) -> SafeString:
+@register.simple_tag()
+def hs_dump(
+    data: Any,
+    name: str = "data",
+    *,
+    wrap: bool = False,
+    classes: str = "hs-wrapper",
+    **kwargs
+) -> SafeString:
     """
-    Constructs Hyperscript code to dump Django data.
+    Injects Python data into Hyperscript via a Django template tag.
 
-    This function is used to generate Hyperscript code for setting variables based on the provided data.
-    It vlaidates and processes additional keyword arguments for customization. This function
-    is shared between different tags like `hs_dump` and `hs_expand`.
+    This tag serializes Django data (such as model instances, querysets, or native types),
+    passes it to the `build_hyperscript()` utility from `hyperscript-dump`, and optionally wraps
+    the output in a <div> element.
+
+    By default, the generated Hyperscript block is wrapped in a <div> with a class of
+    "hs-wrapper" and a Hyperscript `_=` attribute.
 
     Args:
-        data (Any): The data to be dumped into a Hyperscript variable.
-        name (str, optional): The name of the Hyperscript variable for the dumped data. (Only valid for the `hs_dump` tag.)
-        accepted_kwargs (dict, optional): A dictionary of additional keyword arguments to validate sbeyond the default arguments.
-
-    Kwargs:
-        show (bool): If `True`, keeps the Hyperscript element in the DOM after initialization. Defaults to `False`.
-        translate (bool): If `True`, converts dictionary keys from snake_case to camelCase to fit JavaScript conventions. Defaults to `True`.
-        scope (str): The scope of the Hyperscript variable (e.g., 'global', 'local'). Defaults to `'global'`.
-        wrap (bool): If `True`, wraps the Hyperscript code in a `<div>` element. Defaults to `True`.
+        data (Any): The data to be serialized and assigned to a Hyperscript variable.
+        name (str): The name of the variable to assign. Defaults to "data".
+        wrap (bool): If True, wraps the Hyperscript output in a <div>. Defaults to False.
+        classes (str): HTML class for the wrapper element (if wrap=True). Defaults to "hs-wrapper".
+        **kwargs: Optional keyword arguments forwarded to `build_hyperscript()`, such as:
+            - preserve (bool): Prevent removal of the element after assignment.
+            - flatten (bool): Assign each key/value in a dict as its own variable.
+            - camelize (bool): Convert snake_case keys to camelCase.
+            - debug (bool): Add console logging of assigned values.
+            - scope (str): Hyperscript variable scope (e.g., "global", "local").
+            - event (str): Event that triggers assignment.
 
     Returns:
-        SafeString: A Django-safe string containing the generated Hyperscript code. If `wrap=True`, the Hyperscript is enclosed in a `<div>`.
-
-    Raises:
-        TypeError: If an unexpected or invalid keyword argument/type is provided.
-        ValueError: If required arguments (like `name`) are missing or invalid.
+        SafeString: A safe, rendered block of Hyperscript code (wrapped in a <div> unless wrap=False).
     """
-    DEFAULT_KWARGS = {
-        "show": bool,
-        "translate": bool,
-        "scope": str,
-        "wrap": bool,
-        "debug": bool,
-        "event": str,
-        "class": str,
-    }
+    classes = conditional_escape(classes)
 
-    accepted_kwargs = {**DEFAULT_KWARGS, **(accepted_kwargs or {})}
-    for key, value in kwargs.items():
-        if key not in accepted_kwargs:
-            raise TypeError(
-                f"Unexpected keyword argument: {key}. Accepted arguments: {', '.join([f'{kwarg}: {type.__name__}' for kwarg, type in accepted_kwargs.items()])}."
-            )
-        expected_type = accepted_kwargs[key]
-        if not isinstance(value, expected_type):
-            raise TypeError(
-                f"Invalid type for keyword argument {key}: expected {expected_type}, got {type(value).__name__}"
-            )
-
-    event = kwargs.get("event", None)
-    event = f"on {event}" if event not in ["init", None] else "init"
-    debug = kwargs.get("debug", False)
-    scope = kwargs.get("scope", "global")
-    wrap = kwargs.get("wrap", True)
-    classes = escape(kwargs.get("class", "hs-wrapper"))
-    translate = kwargs.get("translate", True)
-
-    if kwargs.get("expand", False):
-        if not isinstance(data, dict):
-            raise TypeError(
-                f"Invalid type for mapping: expected dict, got {type(data).__name__}"
-            )
-        
-        assignments = []
-        for key, value in data.items():
-            value = _prepare_for_hyperscript(value, translate)
-            assignment = f"set {scope} {key} to {value}"
-            if debug:
-                logging_statement = f"call console.log(`{key}:\\n`, {key})"
-                assignment = f"{assignment} then {logging_statement}"
-            assignments.append(assignment)
-        assignment = "\n    ".join(assignments)
-        
-    else:
-        data = _prepare_for_hyperscript(data, translate)
-        assignment = f"set {scope} {name} to {data}"
-        if debug:
-            logging_statement = f"call console.log(`{name}:\\n`, {name})"
-            assignment = f"{assignment} then {logging_statement}"
-
-    hyperscript = f"{event}\n    {assignment}"
-
-    if not kwargs.get("show", False):
-        if not wrap:
-            hyperscript = f"{hyperscript} then remove @_ from me"
-        else:
-            hyperscript = f"{hyperscript} then remove me"  
-
-    hyperscript = f"{hyperscript}\n   end"
+    data = hs_serialize(data)
+    hyperscript = build_hyperscript(data, name, **kwargs)
 
     if wrap:
         hyperscript = f"<div class='{classes}' _='{hyperscript}'></div>"
 
     return mark_safe(hyperscript)
-
-
-@register.simple_tag()
-def hs_dump(data, name: str, **kwargs):
-    """
-    Dumps data into a single Hyperscript variable.
-
-    This tag generates Hyperscript code to set a single variable (`name`)
-    to the given `data` value. It delegates most of its behavior to
-    `_construct_hyperscript`.
-
-    Args:
-        data (Any): The data to be dumped into a Hyperscript variable.
-        name (str): The name of the Hyperscript variable.
-
-    Kwargs:
-        Any additional keyword arguments are passed to `_construct_hyperscript`
-        for customization, including `show`, `translate`, `scope`, and `wrap`.
-
-    Returns:
-        SafeString: A Django-safe string containing the generated Hyperscript code.
-    """
-    return _construct_hyperscript(data, name, **kwargs)
-
-
-@register.simple_tag()
-def hs_expand(data, **kwargs):
-    """
-    Expands a dictionary into multiple Hyperscript variables.
-
-    This tag generates Hyperscript code to expand the given `data` (a dictionary)
-    into multiple variables, with each key in `data` becoming a separate variable.
-    It automatically sets `expand=True` and delegates most of its behavior to
-    `_construct_hyperscript`.
-
-    Args:
-        data (dict): A dictionary where each key-value pair will be dumped as separate Hyperscript variables.
-
-    Kwargs:
-        Any additional keyword arguments are passed to `_construct_hyperscript`
-        for customization, including `show`, `translate`, `scope`, and `wrap`.
-
-    Returns:
-        SafeString: A Django-safe string containing the generated Hyperscript code.
-
-    Raises:
-        TypeError: If `data` is not a dictionary.
-    """
-    kwargs["expand"] = True
-    accepted_kwargs = {"expand": bool}
-    return _construct_hyperscript(data, accepted_kwargs=accepted_kwargs, **kwargs)

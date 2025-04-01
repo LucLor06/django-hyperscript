@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.5.0] - 2025-04-01
+
+### Breaking
+- `show` kwarg renamed to `preserve`
+- `translate` kwarg renamed to `camelize`
+- Using `hs_expand` will raise an error unless removed or replaced with `hs_dump` using the `flatten` kwarg
+
+### Changed
+- Core functionality for building hyperscript has been turned into its own library [hyperscript-dump](https://github.com/LucLor06/hyperscript-dump)
+
+### Deprecated
+- `hs_expand` is now deprecated. Use the `flatten` kwarg in `hs_dump` instead.
+
+---
+
 ## [1.4.1] - 2025-03-31
 ### Added
 - Added [CHANGELOG.md](CHANGELOG.md)

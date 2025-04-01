@@ -1,8 +1,9 @@
 <img src="https://github.com/LucLor06/django-hyperscript/blob/main/django-hyperscript.png?raw=true" width=200>
 
-# Django Hyperscript
+# Django hyperscript
 
-This package is intended to simplify the process of dumping data from Django into Hyperscript by providing two template tags with options for customizing the output.
+**Django Hyperscript** is a simple Django template tag library for dumping data into [_hyperscript](https://github.com/bigskysoftware/_hyperscript).  
+It’s a wrapper around [hyperscript-dump](https://github.com/LucLor06/hyperscript-dump), with Django-specific features like automatic model serialization and safe output for templates.
 
 ---
 ## Installation
@@ -30,11 +31,11 @@ INSTALLED_APPS = [
 ---
 ## Usage
 
-By default, django-hyperscript wraps its output in a `<div>` with a `class` of `hs-wrapper`.
+By default, django-hyperscript wraps its output in a `<div>` with a class of `hs-wrapper`.
 
 ### `hs_dump`
 
-Dumps data into a single Hyperscript variable.
+Dumps data into a single hyperscript variable.
 ```django
 {% hs_dump data 'myData' %}
 ```
@@ -46,27 +47,25 @@ init
     then remove me 
 end"></div>
 ```
-### `hs_expand`
 
-Expands a dictionary into Hyperscript variables.
+Using the kwarg `flatten` will assign the first layer of a dictionary's key value pairs into hyperscript variables. The `name` argument is negligible when using `flatten`.
 ```django
-{% hs_expand data %}
+{% hs_dump data flatten=True %}
 ```
-
 assuming `data` is `{"foo": "bar", "baz": "qux"}`, the tag would output
 ```html
 <div class="hs-wrapper" _="
-init 
-    set global foo to bar 
-    set global baz to qux 
-    then remove me
+init
+    set global foo to 'bar'
+    set global baz to 'qux' 
+    then remove me 
 end"></div>
 ```
 
 ---
 ## Model Serialization
 
-Django-Hyperscript includes a built-in lightweight serializer to help convert Django `Model` instances and `QuerySet`s into plain data structures for use in templates. This includes instances or querysets that are nested within dictionaries or lists, which will be serialized recursively.
+Django-hyperscript includes a built-in lightweight serializer to help convert Django `Model` instances and `QuerySet`s into plain data structures for use in templates. This includes instances or querysets that are nested within dictionaries or lists, which will be serialized recursively.
 
 By default, the serializer returns all editable fields defined on the model. However, you can customize this by adding an `hs_fields` attribute to your model, which is a list of field names you want exposed.
 
@@ -96,60 +95,65 @@ from django_hyperscript.serializer import hs_serialize
 ---
 ## Configuration
 
-Both `hs_dump` and `hs_expand` have a set of additional keyword arguments to configure their behavior.
+`hs_dump` supports all kwargs from [hyperscript-dump](https://github.com/LucLor06/hyperscript-dump)'s `build_hyperscript` along with some additional ones:
 
-### `show`
+### `preserve`
 *Type*: `bool` | *Default*: `False`
 
-Keeps the element the Hyperscript is on in the DOM after initializing if `True`.
+Keeps the element the hyperscript is on in the DOM after initializing if `True`.
 
-### `translate`
+### `camelize`
 *Type*: `bool` | *Default*: `True`
 
-"Translates" dictionary keys from snake case (snake_case) to camel case (camelCase) to fit JavaScript naming conventions.
+"Camelizes" dictionary keys from snake case (snake_case) to camel case (camelCase) to fit JavaScript naming conventions.
+
+### `flatten`
+*Type*: `bool` | *Default*: `False`
+
+If `True`, each key value pair in a dictionary is assigned as a separate variable, rather than as a single object.
+
+**Note:** Requires data to be a dictionary.
 
 ### `scope`
 *Type*: `str` | *Default*: `global`
 
-Determines the scope of the Hyperscript variable (global, element, or local).
+Determines the scope of the hyperscript variable (global, element, or local).
 
 ### `event`
 *Type*: `str` | *Default*: `init`
 
-Specifies the event that triggers assignment. The Hyperscript "on" keyword should not need be provided.
+Specifies the event that triggers assignment. The hyperscript "on" keyword should not need be provided.
 
-**Note:** If **`show`** is `False` (which it is by default), the element will not be removed until after the event is fired and values are set.
+**Note:** If **`preserve`** is `False` (which it is by default), the element will not be removed until after the event is fired and values are set.
+
+### `debug`
+*Type*: `bool` | *Default*: `False`
+
+Logs the set variable name(s) and value(s).
 
 ### `wrap`
 *Type*: `bool` | *Default*: `True`
 
-Wraps the Hyperscript in a `<div>` with its `display` set to `none` if `True`, otherwise returns the raw Hyperscript text.
-
-**Note:** If both **`wrap`** and **`show`** are `False`, the element will *not* be removed and the only Hyperscript attribute and value will be removed from the element.
+Wraps the hyperscript in a `<div>` with its `display` set to `none` if `True`, otherwise returns the raw hyperscript text.
 
 ### `class`
 *Type*: `str` | *Default*: `hs-wrapper`
 
 Sets the HTML class/classes on the wrapper `<div>`.
 
-### `debug`
-*Type*: `bool` | *Default*: `True`
-
-Logs the set variable name(s) and value(s).
-
 ## Final example
 ```django
-{% hs_dump data 'my_data' show=True translate=False scope='element' wrap=False %}
+{% hs_dump data 'my_data' preserve=True camelize=False scope='element' wrap=False %}
 ```
 assuming `data` is `{"my_value": 25}`, the tag would output
 ```python
 "init set element my_data to {'my_value': 25} end"
 ```
 In this example:
-- The Hyperscript remains in the DOM since **`show`** is `True`
-- The keys within the dumped data remain in snake case since **`translate`** is `False`
-- The variable is scoped to the element the Hyperscript belongs to since **`scope`** is set to `'element'`
-- The output is just the raw Hyperscript text since **`wrap`** is set to `False`
+- The hyperscript remains in the DOM since **`preserve`** is `True`
+- The keys within the dumped data remain in snake case since **`camelize`** is `False`
+- The variable is scoped to the element the hyperscript belongs to since **`scope`** is set to `'element'`
+- The output is just the raw hyperscript text since **`wrap`** is set to `False`
 
 ---
 ## License
