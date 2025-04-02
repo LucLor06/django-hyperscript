@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="django-hyperscript",
-    version="1.5.1",
+    version="1.5.2",
     description="Custom Django template tag for integrating hyperscript with Django templates.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
@@ -14,7 +14,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "Django>=3.2",
-        "hyperscript-dump>=1.0.3"
+        "hyperscript-dump>=1.0.4"
     ],
     classifiers=[
         "Development Status :: 5 - Production/Stable",

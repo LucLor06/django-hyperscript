@@ -120,9 +120,9 @@ If `True`, each key value pair in a dictionary is assigned as a separate variabl
 Determines the scope of the hyperscript variable (global, element, or local).
 
 ### `event`
-*Type*: `str` | *Default*: `init`
+*Type*: `str, None` | *Default*: `init`
 
-Specifies the event that triggers assignment. The hyperscript "on" keyword should not need be provided.
+Specifies the event that triggers assignment. The hyperscript "on" keyword should not need be provided. When set to none only the hyperscript assignment statements will be returned.
 
 **Note:** If **`preserve`** is `False` (which it is by default), the element will not be removed until after the event is fired and values are set.
 

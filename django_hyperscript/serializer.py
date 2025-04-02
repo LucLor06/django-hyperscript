@@ -4,7 +4,7 @@ from typing import List
 
 def get_hs_fields(model: models.Model) -> List[str]:
     """
-    Returns the hs_fields attribute of a django `Model`'s `Meta` class.
+    Returns the hs_fields attribute of a django `Model`.
 
     If hs_fields is not defined all editable fields are returned.
     """
@@ -18,7 +18,7 @@ def get_hs_fields(model: models.Model) -> List[str]:
     
 def hs_serialize(data):
     """
-    Serializes a Django `QuerySet` or `Model` instance into a `dict` based on the hs_fields attribute defined in the `Model`'s `Meta` class.
+    Serializes a Django `QuerySet` or `Model` instance into a `dict` based on the hs_fields attribute defined in the `Model`.
 
     If the passed data does not match either of the previous types, it will be returned as is.
     """
